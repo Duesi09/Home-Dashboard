@@ -1,0 +1,8 @@
+.env
+.spotify_token.json
+venv/
+libs/
+get-pip.py
+server.log
+__pycache__/
+*.pyc

@@ -1,0 +1,24 @@
+# Render Blueprint — deploys the dashboard as a free Python web service.
+# In Render: New + → "Blueprint" → connect this repo → it reads this file.
+# Then set the secret env vars (marked sync:false) in the Render dashboard.
+services:
+  - type: web
+    name: andri-dashboard
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.3"
+      - key: TRAIN_ORIGIN
+        value: "Ruschein, Tschinas"
+      # --- set these manually in the Render dashboard (they stay secret) ---
+      - key: STEAM_API_KEY
+        sync: false
+      - key: STEAM_ID
+        sync: false
+      - key: DASH_USER
+        sync: false        # your login username (e.g. andri)
+      - key: DASH_PASSWORD
+        sync: false        # your login password — REQUIRED so it's not public
