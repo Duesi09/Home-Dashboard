@@ -329,7 +329,7 @@ html { scrollbar-color: rgba(125,211,252,.4) transparent; }
 
     <!-- 03 Steam recent -->
     <div class="card col2 row2">
-      <div class="label"><span class="num">03</span> · Steam recent</div>
+      <div class="label"><span class="num">03</span> · Top sellers <span class="dim-note">STEAM</span></div>
       <div id="steam-recent"><div class="muted">loading…</div></div>
     </div>
 
@@ -503,25 +503,21 @@ window.thumbFallback = function (img) {
 const thumb = (header, name) =>
   `<img class="thumb" src="${header}" alt="" data-name="${encodeURIComponent(name||'')}" onerror="thumbFallback(this)">`;
 
-async function loadSteamRecent() {
+// 03 — Steam's current best-selling games (keyless, works on cloud)
+async function loadTopSellers() {
   const box = $('steam-recent');
   try {
-    const d = await (await fetch('/api/steam/recent')).json();
-    // Steam blocks key-authenticated calls from cloud IPs (403). Show a clean
-    // note instead of the raw error. (Works fine on a home/residential IP.)
-    if (d.error) {
-      const cloud = /403|forbidden/i.test(d.error);
-      box.innerHTML = `<div class="muted">${cloud ? 'Steam blocks recently-played from cloud hosts 😕' : 'Steam unavailable right now'}</div>`;
-      setStatus('steam', false); return;
-    }
-    if (!d.games?.length) { box.innerHTML = '<div class="muted">nothing played recently</div>'; setStatus('steam', true); return; }
-    box.innerHTML = d.games.map(g => `
+    const d = await (await fetch('/api/steam/topsellers')).json();
+    if (d.error) { box.innerHTML = '<div class="muted">Steam unavailable right now</div>'; setStatus('steam', false); return; }
+    if (!d.games?.length) { box.innerHTML = '<div class="muted">no data</div>'; setStatus('steam', true); return; }
+    box.innerHTML = d.games.slice(0, 5).map(g => `
       <a href="${g.url}" target="_blank"><div class="row">
         ${thumb(g.header, g.name)}
         <div class="grow">
           <div class="t truncate">${g.name}</div>
-          <div class="s">${g.hours_total}h total · ${g.hours_2weeks}h last 2w</div>
+          ${g.price ? `<div class="s">${g.price}</div>` : ''}
         </div>
+        ${g.discount > 0 ? `<span class="disc">-${g.discount}%</span>` : ''}
       </div></a>`).join('');
     setStatus('steam', true);
   } catch (e) { box.innerHTML = '<span class="err">Steam down</span>'; setStatus('steam', false); }
@@ -718,7 +714,7 @@ async function boot() {
     if (cfg.train_origin) TRAIN_ORIGIN = cfg.train_origin;
   } catch (e) {}
   loadWeather();   setInterval(loadWeather, 10*60*1000);   // 10 min
-  loadSteamRecent(); setInterval(loadSteamRecent, 5*60*1000); // 5 min
+  loadTopSellers(); setInterval(loadTopSellers, 10*60*1000); // 10 min
   loadWishlist();  setInterval(loadWishlist, 60*1000);     // 1 min -> re-rolls the 3 games
   loadTrains();    setInterval(loadTrains, 60*1000);       // 1 min
   loadNews();      setInterval(loadNews, 15*60*1000);      // 15 min

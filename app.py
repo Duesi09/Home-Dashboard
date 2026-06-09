@@ -233,6 +233,33 @@ def steam_wishlist():
     return jsonify({"games": games, "total": len(appids), "on_sale": len(discounted)})
 
 
+def _fetch_topsellers():
+    r = _steam_get("https://store.steampowered.com/api/featuredcategories",
+                   params={"cc": "ch", "l": "english"})
+    out = []
+    for it in r.json().get("top_sellers", {}).get("items", [])[:6]:
+        fp = it.get("final_price")
+        price = f"{it.get('currency', 'CHF')} {fp / 100:.2f}" if fp else ""
+        out.append({
+            "name": it.get("name"),
+            "appid": it.get("id"),
+            "header": it.get("header_image") or it.get("large_capsule_image"),
+            "url": f"https://store.steampowered.com/app/{it.get('id')}",
+            "discount": it.get("discount_percent", 0),
+            "price": price,
+        })
+    return out
+
+
+@app.route("/api/steam/topsellers")
+def steam_topsellers():
+    # Steam's current best-selling games (keyless store endpoint, works on cloud).
+    try:
+        return jsonify({"games": _cached("topsellers", 600, _fetch_topsellers)})  # 10 min
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
+
 # ---------------------------------------------------------------------------
 # News feeds (RSS/Atom via backend)
 # ---------------------------------------------------------------------------
