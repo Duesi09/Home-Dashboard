@@ -1,0 +1,20 @@
+name: Keep dashboard awake
+
+# Pings the dashboard's /healthz endpoint every 5 minutes so Render's free
+# tier never hits its 15-minute idle timeout (= no more cold-start wait).
+# Runs from GitHub (free, unlimited minutes on public repos).
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"   # every 5 minutes
+  workflow_dispatch:         # also allow manual runs from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping /healthz
+        run: |
+          curl -fsS --max-time 60 https://andri-dashboard.onrender.com/healthz \
+            && echo "pinged OK" \
+            || echo "ping failed (will retry next run)"
