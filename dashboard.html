@@ -507,7 +507,13 @@ async function loadSteamRecent() {
   const box = $('steam-recent');
   try {
     const d = await (await fetch('/api/steam/recent')).json();
-    if (d.error) { box.innerHTML = `<div class="muted">${d.error}</div>`; setStatus('steam', false); return; }
+    // Steam blocks key-authenticated calls from cloud IPs (403). Show a clean
+    // note instead of the raw error. (Works fine on a home/residential IP.)
+    if (d.error) {
+      const cloud = /403|forbidden/i.test(d.error);
+      box.innerHTML = `<div class="muted">${cloud ? 'Steam blocks recently-played from cloud hosts 😕' : 'Steam unavailable right now'}</div>`;
+      setStatus('steam', false); return;
+    }
     if (!d.games?.length) { box.innerHTML = '<div class="muted">nothing played recently</div>'; setStatus('steam', true); return; }
     box.innerHTML = d.games.map(g => `
       <a href="${g.url}" target="_blank"><div class="row">
@@ -526,7 +532,7 @@ async function loadWishlist() {
   const box = $('steam-deals');
   try {
     const d = await (await fetch('/api/steam/wishlist')).json();
-    if (d.error) { box.innerHTML = `<div class="muted">${d.error}</div>`; return; }
+    if (d.error) { box.innerHTML = '<div class="muted">Steam unavailable right now</div>'; return; }
     if (!d.games?.length) { box.innerHTML = '<div class="muted">wishlist empty / private</div>'; return; }
     $('wl-count').textContent = d.on_sale > 0 ? `${d.on_sale} on sale` : `${d.total} games`;
     box.innerHTML = d.games.map(g => `
