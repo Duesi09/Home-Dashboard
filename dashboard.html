@@ -2,8 +2,19 @@
 <html lang="de-CH">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Dashboard</title>
+
+<!-- Installable app (PWA): adds it to the home screen as a fullscreen app -->
+<link rel="manifest" href="/static/manifest.json" />
+<meta name="theme-color" content="#060a10" />
+<!-- iOS: run fullscreen (no Safari bars) with our own icon -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Dashboard" />
+<link rel="apple-touch-icon" href="/static/icon-180.png" />
+<link rel="icon" type="image/png" href="/static/icon-192.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
