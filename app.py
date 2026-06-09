@@ -38,6 +38,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 @app.before_request
 def _require_login():
+    if request.path == "/healthz":
+        return  # health check stays open (used by the keep-alive pinger)
     if not DASH_PASSWORD:
         return  # no password configured -> open (local use)
     auth = request.authorization
@@ -46,6 +48,12 @@ def _require_login():
             "Login required", 401,
             {"WWW-Authenticate": 'Basic realm="Andri Dashboard"'},
         )
+
+
+@app.route("/healthz")
+def healthz():
+    # tiny always-200 endpoint so an uptime pinger can keep the free host awake
+    return "ok", 200
 
 
 # ---------------------------------------------------------------------------
