@@ -18,7 +18,3 @@ services:
         sync: false
       - key: STEAM_ID
         sync: false
-      - key: DASH_USER
-        sync: false        # your login username (e.g. andri)
-      - key: DASH_PASSWORD
-        sync: false        # your login password — REQUIRED so it's not public

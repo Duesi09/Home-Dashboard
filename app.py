@@ -17,7 +17,7 @@ import xml.etree.ElementTree as ET
 
 import requests
 from dotenv import load_dotenv
-from flask import Flask, Response, jsonify, request, send_from_directory
+from flask import Flask, jsonify, send_from_directory
 
 load_dotenv()
 
@@ -28,27 +28,7 @@ STEAM_API_KEY = os.getenv("STEAM_API_KEY", "")
 STEAM_ID = os.getenv("STEAM_ID", "")
 TRAIN_ORIGIN = os.getenv("TRAIN_ORIGIN", "Ruschein, Tschinas")
 
-# Optional password protection. When DASH_PASSWORD is set (e.g. as an env var on
-# the cloud host), every request needs HTTP Basic Auth. Left empty locally so the
-# dashboard stays open on your own machine.
-DASH_USER = os.getenv("DASH_USER", "andri")
-DASH_PASSWORD = os.getenv("DASH_PASSWORD", "")
-
 HERE = os.path.dirname(os.path.abspath(__file__))
-
-
-@app.before_request
-def _require_login():
-    if request.path == "/healthz":
-        return  # health check stays open (used by the keep-alive pinger)
-    if not DASH_PASSWORD:
-        return  # no password configured -> open (local use)
-    auth = request.authorization
-    if not auth or auth.username != DASH_USER or auth.password != DASH_PASSWORD:
-        return Response(
-            "Login required", 401,
-            {"WWW-Authenticate": 'Basic realm="Andri Dashboard"'},
-        )
 
 
 @app.route("/healthz")
