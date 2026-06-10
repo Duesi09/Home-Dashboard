@@ -248,9 +248,12 @@ a:hover > .row .t { color: var(--accent); }
 .tp-link { display: block; color: inherit; text-decoration: none; }
 .tp-shot { position: relative; width: 100%; height: 150px; border-radius: 12px; overflow: hidden;
   margin-bottom: 14px; background: linear-gradient(135deg, rgba(125,211,252,.15), rgba(56,189,248,.05)); }
-/* contain = the whole gadget always fits, scaled, never cropped */
+/* photo variant: clean light tile so product shots blend; contain = the whole
+   gadget always fits, scaled, never cropped */
+.tp-photo { background: linear-gradient(150deg, #f6f8fb, #dde6ef); }
+.tp-photo::after { display: none; }   /* no dark scrim over the light tile */
 .tp-img { width: 100%; height: 100%; object-fit: contain; display: block;
-  padding: 12px; transition: transform .4s ease; }
+  padding: 14px; transition: transform .4s ease; }
 .tp-link:hover .tp-img { transform: scale(1.05); }
 /* emoji-icon variant (curated gadgets) — big glyph in a soft glowing disc */
 .tp-emoji { display: flex; align-items: center; justify-content: center;
@@ -268,9 +271,9 @@ a:hover > .row .t { color: var(--accent); }
 .tp-shot::after { content: ''; position: absolute; inset: 0;
   background: linear-gradient(to top, rgba(6,10,16,.75), transparent 55%); pointer-events: none; }
 .tp-noimg .tp-img { display: none; }
-.tp-cat { position: absolute; bottom: 10px; left: 12px; z-index: 1;
+.tp-cat { position: absolute; bottom: 10px; left: 12px; z-index: 2;
   font-family: var(--mono); font-size: 0.62rem; color: #fff; letter-spacing: 1.5px; text-transform: uppercase;
-  background: rgba(56,189,248,.55); backdrop-filter: blur(6px); padding: 4px 9px; border-radius: 20px; }
+  background: rgba(8,12,20,.72); backdrop-filter: blur(6px); padding: 4px 9px; border-radius: 20px; }
 .tp-name { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 1.5rem; line-height: 1.1; }
 .tp-link:hover .tp-name { color: var(--accent); }
 .tp-desc { font-size: 0.88rem; color: var(--dim); margin: 8px 0 14px; }
@@ -651,10 +654,16 @@ function loadTechPick() {
   const box = $('techpick');
   const g = GADGETS[dayOfYear() % GADGETS.length];
   const url = 'https://www.digitec.ch/en/search?q=' + encodeURIComponent(g.q);
+  // photo scaled to fit on a clean light tile; emoji glyph as graceful fallback
+  const shot = g.img
+    ? `<img class="tp-img" src="${g.img}" alt="${g.name}" loading="lazy"
+         onerror="var s=this.parentNode; s.classList.remove('tp-photo'); s.classList.add('tp-emoji'); s.querySelector('.tp-ico').style.display=''; this.remove();">
+       <span class="tp-ico" style="display:none">${g.e}</span>`
+    : `<span class="tp-ico">${g.e}</span>`;
   box.innerHTML = `
     <a href="${url}" target="_blank" class="tp-link">
-      <div class="tp-shot tp-emoji">
-        <span class="tp-ico">${g.e}</span>
+      <div class="tp-shot${g.img ? ' tp-photo' : ' tp-emoji'}">
+        ${shot}
         <span class="tp-cat">${g.cat}</span>
       </div>
       <div class="tp-name">${g.name}</div>
