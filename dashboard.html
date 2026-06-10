@@ -317,7 +317,7 @@ html { scrollbar-color: rgba(125,211,252,.4) transparent; }
 
     <!-- 01 Weather -->
     <div class="card col2 row2">
-      <div class="label"><span class="num">01</span> · Weather <span class="dot" id="wdot"></span></div>
+      <div class="label"><span class="num">01</span> · Weather <span class="dot" id="wdot"></span> <span class="dim-note">METEOSWISS</span></div>
       <div class="temp-big" id="w-temp">—</div>
       <div class="cond" id="w-cond">loading…</div>
       <div class="precip" id="w-precip">—</div>
@@ -419,10 +419,12 @@ setInterval(tick, 1000); tick();
    ============================================================ */
 async function loadWeather() {
   // daily fields let us say whether it'll rain/snow today + the chance of it
+  // models=meteoswiss_icon_ch1 -> the official Swiss 1km high-res model
+  // (same data MeteoSwiss/search.ch use) — most accurate for Andri's valley, no key.
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${WEATHER.lat}&longitude=${WEATHER.lon}`
     + `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code`
     + `&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max,`
-    + `precipitation_sum,snowfall_sum&forecast_days=1&timezone=Europe/Zurich`;
+    + `precipitation_sum,snowfall_sum&models=meteoswiss_icon_ch1&forecast_days=1&timezone=Europe/Zurich`;
   try {
     const d = await (await fetch(url)).json();
     const c = d.current, day = d.daily;
