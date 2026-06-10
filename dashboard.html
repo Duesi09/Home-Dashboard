@@ -251,6 +251,11 @@ a:hover > .row .t { color: var(--accent); }
 .tp-img { width: 100%; height: 100%; object-fit: cover; display: block;
   transition: transform .4s ease; }
 .tp-link:hover .tp-img { transform: scale(1.05); }
+/* emoji-icon variant (curated gadgets) — big glyph on the gradient */
+.tp-emoji { display: flex; align-items: center; justify-content: center; }
+.tp-ico { font-size: 4.6rem; line-height: 1; z-index: 1; transition: transform .3s ease;
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,.45)); }
+.tp-link:hover .tp-ico { transform: scale(1.12) rotate(-4deg); }
 /* gradient scrim so the badge stays readable on any photo */
 .tp-shot::after { content: ''; position: absolute; inset: 0;
   background: linear-gradient(to top, rgba(6,10,16,.75), transparent 55%); pointer-events: none; }
@@ -369,7 +374,7 @@ html { scrollbar-color: rgba(125,211,252,.4) transparent; }
 
     <!-- 07 Daily tech pick -->
     <div class="card col3">
-      <div class="label"><span class="num">07</span> · Cool tech of the day</div>
+      <div class="label"><span class="num">07</span> · Gadget of the day</div>
       <div id="techpick"><div class="muted">loading…</div></div>
     </div>
 
@@ -600,56 +605,55 @@ async function loadNews() {
 }
 
 /* ============================================================
-   07 Tech pick of the day — a real gadget from Gadget Flow's feed
-   (via /api/techpick). One is chosen per day (stable through the day,
-   rotates automatically). The curated list below is the OFFLINE
-   FALLBACK used only if the feed is unreachable.
+   07 Gadget of the day — hand-curated "gadgets that could change
+   your life". Emoji icons (never break), one per day, each links to
+   a digitec.ch search so it's buyable in CH.
    ============================================================ */
-// Photos are stable Wikimedia Commons thumbnails (hotlink-friendly, no key).
-const WM = 'https://upload.wikimedia.org/wikipedia/commons/thumb/';
-const TECH_PICKS = [
-  {name:'Raspberry Pi 4 Model B', cat:'Single-board PC', price:'~CHF 60', desc:'The homelab classic. Pi-hole, NAS, k3s node — endless weekend projects.', url:'https://www.raspberrypi.com/products/raspberry-pi-4-model-b/', img:WM+'1/10/Raspberry_Pi_4_Model_B_-_Top.jpg/500px-Raspberry_Pi_4_Model_B_-_Top.jpg'},
-  {name:'Flipper Zero', cat:'Hacker multitool', price:'~CHF 180', desc:'Sub-GHz, RFID, NFC, IR, GPIO — a pentest playground in your pocket.', url:'https://flipperzero.one/', img:WM+'b/bd/Flipper_Zero.jpg/500px-Flipper_Zero.jpg'},
-  {name:'Steam Deck OLED', cat:'Handheld PC', price:'~CHF 570', desc:'It literally runs Arch (SteamOS). Need we say more?', url:'https://www.steamdeck.com/', img:WM+'5/5d/Steam_Deck_%28front%29.png/500px-Steam_Deck_%28front%29.png'},
-  {name:'ESP32 Dev Board', cat:'Microcontroller', price:'~CHF 12', desc:'Wi-Fi + BLE micro for IoT tinkering. Buy a fistful of them.', url:'https://www.espressif.com/en/products/socs/esp32', img:WM+'3/33/Espressif_ESP-WROOM-32_Wi-Fi_%26_Bluetooth_Module.jpg/500px-Espressif_ESP-WROOM-32_Wi-Fi_%26_Bluetooth_Module.jpg'},
-  {name:'Arduino Uno R3', cat:'Microcontroller', price:'~CHF 25', desc:'Where every maker starts. Blink an LED, then take over the house.', url:'https://store.arduino.cc/products/arduino-uno-rev3', img:WM+'3/38/Arduino_Uno_-_R3.jpg/500px-Arduino_Uno_-_R3.jpg'},
-  {name:'Orange Pi', cat:'Single-board PC', price:'~CHF 40', desc:'Cheaper Pi alternative with beefy specs. Great second cluster node.', url:'http://www.orangepi.org/', img:WM+'4/40/Orange_Pi_2G-IoT_%2834028942535%29.png/500px-Orange_Pi_2G-IoT_%2834028942535%29.png'},
-  {name:'Pinebook Pro', cat:'Linux laptop', price:'~CHF 220', desc:'ARM laptop built for Linux. Tinkerer-friendly, runs Arch ARM happily.', url:'https://pine64.org/devices/pinebook_pro/', img:WM+'e/e8/Pinebook_11_Inch.jpg/500px-Pinebook_11_Inch.jpg'},
-  {name:'PinePhone', cat:'Linux phone', price:'~CHF 200', desc:'A phone that runs real Linux. Hardware kill-switches included.', url:'https://pine64.org/devices/pinephone/', img:WM+'7/7d/Pinephone-final.jpg/500px-Pinephone-final.jpg'},
-  {name:'BeagleBoard', cat:'Single-board PC', price:'~CHF 90', desc:'Real-time PRU cores + tons of GPIO. The industrial maker board.', url:'https://www.beagleboard.org/', img:WM+'e/e1/Beagle_Board_big.jpg/500px-Beagle_Board_big.jpg'},
-  {name:'Digital Multimeter', cat:'Bench tool', price:'~CHF 40', desc:'Every IT bench needs one. Is it the cable or the port? Now you know.', url:'https://en.wikipedia.org/wiki/Multimeter', img:WM+'d/db/YX360TRF%28Sanwa%29.JPG/500px-YX360TRF%28Sanwa%29.JPG'},
-  {name:'Soldering Station', cat:'Bench tool', price:'~CHF 60', desc:'Fix the cable instead of binning it. A skill worth having.', url:'https://en.wikipedia.org/wiki/Soldering_iron', img:WM+'4/4a/Soldering_gun.jpg/500px-Soldering_gun.jpg'},
-  {name:'USB Logic Analyzer', cat:'Bench tool', price:'~CHF 15', desc:'Sniff I2C/SPI/UART for the price of lunch. Debug hardware like a pro.', url:'https://en.wikipedia.org/wiki/Logic_analyzer', img:WM+'9/9d/Logic_analyzer_Agilent_16902A.jpg/500px-Logic_analyzer_Agilent_16902A.jpg'},
-  {name:'Digital Oscilloscope', cat:'Bench tool', price:'~CHF 350', desc:'See the signal, not just guess. The big-boy electronics upgrade.', url:'https://en.wikipedia.org/wiki/Oscilloscope', img:WM+'0/0e/Tektronix_Oscilloscope_475A.jpg/500px-Tektronix_Oscilloscope_475A.jpg'},
-  {name:'Game Boy (for RetroPie)', cat:'Retro project', price:'~CHF 30', desc:'Gut a classic shell, drop in a Pi Zero, build your dream handheld.', url:'https://retropie.org.uk/', img:WM+'7/7c/Game-Boy-FL.png/500px-Game-Boy-FL.png'},
+const GADGETS = [
+  {e:'🏷️', name:'Label Maker', cat:'Organisation', price:'~CHF 30', desc:'Label cables, shelves, boxes — everything. Weirdly addictive, instantly tidier life.', q:'label maker'},
+  {e:'🎧', name:'Noise-Cancelling Headphones', cat:'Audio', price:'~CHF 300', desc:'Silence on demand — focus at work, peace on flights. Hard to go back.', q:'noise cancelling headphones'},
+  {e:'📖', name:'E-Reader', cat:'Reading', price:'~CHF 150', desc:'1000 books in your pocket, weeks of battery, zero eye strain.', q:'ebook reader kindle'},
+  {e:'🔌', name:'GaN Charger', cat:'Power', price:'~CHF 50', desc:'One tiny brick charges laptop + phone + tablet. Bin the bag of chargers.', q:'gan charger'},
+  {e:'🔍', name:'Bluetooth Tracker', cat:'Everyday carry', price:'~CHF 35', desc:'Never lose keys, wallet or bag again. Find them from your phone.', q:'apple airtag'},
+  {e:'🗄️', name:'NAS', cat:'Homelab', price:'~CHF 350', desc:'Your own private cloud — backups, Plex, files. Owned, not rented.', q:'synology nas'},
+  {e:'🚽', name:'Bidet Attachment', cat:'Bathroom', price:'~CHF 40', desc:'Genuinely life-changing. We will leave it at that.', q:'bidet attachment'},
+  {e:'🪑', name:'Standing Desk', cat:'Workspace', price:'~CHF 400', desc:'Sit, stand, repeat. Your back in 10 years will thank you.', q:'standing desk'},
+  {e:'🌡️', name:'CO₂ Monitor', cat:'Health', price:'~CHF 200', desc:'See a stuffy room → crack a window → think clearer. (Aranet4)', q:'co2 monitor aranet'},
+  {e:'🪥', name:'Electric Toothbrush', cat:'Health', price:'~CHF 80', desc:'Dentist-level clean every day. Future-you has great teeth.', q:'electric toothbrush'},
+  {e:'🔦', name:'Headlamp', cat:'Everyday carry', price:'~CHF 30', desc:'Hands-free light. Once you own one you use it constantly.', q:'led headlamp'},
+  {e:'🧰', name:'Multitool', cat:'Everyday carry', price:'~CHF 90', desc:'Pliers, knife, drivers on your belt. Solves daily little problems.', q:'leatherman multitool'},
+  {e:'⚡', name:'Power Bank', cat:'Power', price:'~CHF 60', desc:'Charge your laptop anywhere. Never hunt for an outlet again.', q:'power bank laptop'},
+  {e:'💾', name:'Portable SSD', cat:'Storage', price:'~CHF 130', desc:'2 TB in your pocket, blazing fast. Backups & big files anywhere.', q:'portable ssd'},
+  {e:'⌨️', name:'Mechanical Keyboard', cat:'Desk', price:'~CHF 100', desc:'Your most-used tool, upgraded. Typing becomes a joy.', q:'mechanical keyboard'},
+  {e:'🖱️', name:'Ergonomic Mouse', cat:'Desk', price:'~CHF 100', desc:'All-day comfort, fast scroll, multi-device. (MX Master)', q:'logitech mx master'},
+  {e:'🍓', name:'Raspberry Pi', cat:'Homelab', price:'~CHF 70', desc:'A tiny computer that does anything: Pi-hole, NAS, retro games, learning.', q:'raspberry pi 5'},
+  {e:'🐬', name:'Flipper Zero', cat:'Hacker', price:'~CHF 180', desc:'Pocket multitool for hackers: RFID, NFC, IR, sub-GHz.', q:'flipper zero'},
+  {e:'💡', name:'Smart Bulbs', cat:'Smart home', price:'~CHF 60', desc:'Wake up to light, set the mood, automate it all. (Hue)', q:'philips hue'},
+  {e:'😴', name:'White Noise Machine', cat:'Sleep', price:'~CHF 50', desc:'Fall asleep faster, block out the world.', q:'white noise machine'},
+  {e:'🤖', name:'Robot Vacuum', cat:'Home', price:'~CHF 400', desc:'Wake up to clean floors. Set it and forget it.', q:'robot vacuum'},
+  {e:'⌚', name:'Fitness Watch', cat:'Health', price:'~CHF 300', desc:'Sleep, steps, heart — tiny nudges that compound. (Garmin)', q:'garmin smartwatch'},
+  {e:'🔐', name:'Security Key', cat:'Security', price:'~CHF 50', desc:'Unphishable 2FA. Plug it in, you are protected. (YubiKey)', q:'yubikey'},
+  {e:'📷', name:'Dash Cam', cat:'Car', price:'~CHF 120', desc:'Peace of mind on the road, evidence if you ever need it.', q:'dash cam'},
+  {e:'☕', name:'Gooseneck Kettle', cat:'Kitchen', price:'~CHF 90', desc:'Perfect-temp water in seconds. Coffee & tea, leveled up.', q:'gooseneck kettle'},
+  {e:'🔋', name:'Smart Plugs', cat:'Smart home', price:'~CHF 40', desc:'Make any dumb device smart — schedules, voice, automation.', q:'smart plug'},
 ];
 const dayOfYear = () => { const n = new Date(); return Math.floor((n - new Date(n.getFullYear(), 0, 0)) / 86400000); };
 
-async function loadTechPick() {
+function loadTechPick() {
   const box = $('techpick');
-  let pick = null, source = 'Gadget Flow';
-  // live: a real gadget of the day from Gadget Flow (via our backend)
-  try {
-    const d = await (await fetch('/api/techpick')).json();
-    if (d.items?.length) { pick = d.items[dayOfYear() % d.items.length]; source = d.source || source; }
-  } catch (e) {}
-  // fallback: the built-in curated list if the feed is unreachable
-  if (!pick) {
-    const p = TECH_PICKS[dayOfYear() % TECH_PICKS.length];
-    pick = { name: p.name, url: p.url, img: p.img, desc: p.desc };
-    source = p.cat;
-  }
+  const g = GADGETS[dayOfYear() % GADGETS.length];
+  const url = 'https://www.digitec.ch/en/search?q=' + encodeURIComponent(g.q);
   box.innerHTML = `
-    <a href="${pick.url}" target="_blank" class="tp-link">
-      <div class="tp-shot">
-        <img class="tp-img" src="${pick.img}" alt="${pick.name}" loading="lazy"
-             onerror="this.parentNode.classList.add('tp-noimg')">
-        <span class="tp-cat">${source}</span>
+    <a href="${url}" target="_blank" class="tp-link">
+      <div class="tp-shot tp-emoji">
+        <span class="tp-ico">${g.e}</span>
+        <span class="tp-cat">${g.cat}</span>
       </div>
-      <div class="tp-name">${pick.name}</div>
-      <div class="tp-desc">${pick.desc || ''}</div>
-      <div class="tp-foot" style="justify-content:flex-end">
-        <span class="tp-view">read →</span>
+      <div class="tp-name">${g.name}</div>
+      <div class="tp-desc">${g.desc}</div>
+      <div class="tp-foot">
+        <span class="tp-price">${g.price}</span>
+        <span class="tp-view">buy →</span>
       </div>
     </a>`;
 }
