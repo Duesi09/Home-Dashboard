@@ -248,8 +248,9 @@ a:hover > .row .t { color: var(--accent); }
 .tp-link { display: block; color: inherit; text-decoration: none; }
 .tp-shot { position: relative; width: 100%; height: 150px; border-radius: 12px; overflow: hidden;
   margin-bottom: 14px; background: linear-gradient(135deg, rgba(125,211,252,.15), rgba(56,189,248,.05)); }
-.tp-img { width: 100%; height: 100%; object-fit: cover; display: block;
-  transition: transform .4s ease; }
+/* contain = the whole gadget always fits, scaled, never cropped */
+.tp-img { width: 100%; height: 100%; object-fit: contain; display: block;
+  padding: 12px; transition: transform .4s ease; }
 .tp-link:hover .tp-img { transform: scale(1.05); }
 /* emoji-icon variant (curated gadgets) — big glyph on the gradient */
 .tp-emoji { display: flex; align-items: center; justify-content: center; }
