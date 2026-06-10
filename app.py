@@ -339,35 +339,30 @@ def anthropic_news():
 
 
 # ---------------------------------------------------------------------------
-# Hack of the day — DIY hardware builds & hacker projects from Hackaday's RSS
+# Cool tech of the day — interesting + practical new tech from New Atlas
 # ---------------------------------------------------------------------------
-MRSS = "{http://search.yahoo.com/mrss/}"
-
-
 @app.route("/api/techpick")
 def techpick():
-    # Hackaday posts hardware hacks / maker projects daily. The frontend picks
-    # one per day from this list (with photo + blurb + link to the write-up).
+    # New Atlas covers cool & practical new tech/innovation daily. The image
+    # lives in the description HTML. The frontend picks one per day.
     try:
-        r = requests.get("https://hackaday.com/feed/", timeout=12,
-                         headers={"User-Agent": "personal-dashboard/1.0"})
+        r = requests.get("https://newatlas.com/index.rss", timeout=12,
+                         headers={"User-Agent": "Mozilla/5.0 (personal-dashboard)"})
         r.raise_for_status()
         root = ET.fromstring(r.content)
         items = []
-        for it in root.findall(".//item")[:15]:
-            mt = it.find(MRSS + "thumbnail")
-            if mt is None:
-                mt = it.find(MRSS + "content")
-            img = mt.get("url") if mt is not None else ""
-            desc = re.sub(r"<[^>]+>", "", it.findtext("description") or "")
-            desc = ihtml.unescape(re.sub(r"\s+", " ", desc)).strip()
+        for it in root.findall(".//item")[:20]:
+            body = it.findtext("description") or ""
+            m = re.search(r'<img[^>]+src="([^"]+)"', body)
+            img = m.group(1) if m else ""
+            desc = ihtml.unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", body))).strip()
             items.append({
                 "name": ihtml.unescape((it.findtext("title") or "").strip()),
                 "url": (it.findtext("link") or "").strip(),
                 "img": img,
                 "desc": desc[:170],
             })
-        return jsonify({"source": "Hackaday", "items": items})
+        return jsonify({"source": "New Atlas", "items": items})
     except Exception as e:
         return jsonify({"error": str(e)})
 

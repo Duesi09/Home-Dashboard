@@ -369,7 +369,7 @@ html { scrollbar-color: rgba(125,211,252,.4) transparent; }
 
     <!-- 07 Daily tech pick -->
     <div class="card col3">
-      <div class="label"><span class="num">07</span> · Hack of the day</div>
+      <div class="label"><span class="num">07</span> · Cool tech of the day</div>
       <div id="techpick"><div class="muted">loading…</div></div>
     </div>
 
@@ -389,7 +389,7 @@ html { scrollbar-color: rgba(125,211,252,.4) transparent; }
 /* ============================================================
    Config + tiny helpers
    ============================================================ */
-const WEATHER = { lat: 46.7686, lon: 9.2178 }; // Ruschein, 7154
+const WEATHER = { lat: 46.7852, lon: 9.1925 }; // Ruschein village, 7154 (~1157m)
 const $ = (id) => document.getElementById(id);
 const setStatus = (key, ok) => { const e = $('st-' + key); if (e) e.className = 'sdot ' + (ok ? 'ok' : 'bad'); };
 
