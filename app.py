@@ -339,34 +339,35 @@ def anthropic_news():
 
 
 # ---------------------------------------------------------------------------
-# Tech pick of the day — real gadgets from Gadget Flow's RSS
+# Hack of the day — DIY hardware builds & hacker projects from Hackaday's RSS
 # ---------------------------------------------------------------------------
+MRSS = "{http://search.yahoo.com/mrss/}"
+
+
 @app.route("/api/techpick")
 def techpick():
-    # Gadget Flow lists actual buyable gadgets daily. We keep only real product
-    # entries (their URLs contain /product/) so editorial/news posts are skipped.
-    # The frontend picks one per day from this list.
+    # Hackaday posts hardware hacks / maker projects daily. The frontend picks
+    # one per day from this list (with photo + blurb + link to the write-up).
     try:
-        r = requests.get("https://thegadgetflow.com/feed/", timeout=12,
+        r = requests.get("https://hackaday.com/feed/", timeout=12,
                          headers={"User-Agent": "personal-dashboard/1.0"})
         r.raise_for_status()
         root = ET.fromstring(r.content)
         items = []
-        for it in root.findall(".//item"):
-            link = (it.findtext("link") or "").strip()
-            if "/product/" not in link:
-                continue
-            enc = it.find("enclosure")
-            img = enc.get("url") if enc is not None else ""
+        for it in root.findall(".//item")[:15]:
+            mt = it.find(MRSS + "thumbnail")
+            if mt is None:
+                mt = it.find(MRSS + "content")
+            img = mt.get("url") if mt is not None else ""
             desc = re.sub(r"<[^>]+>", "", it.findtext("description") or "")
-            desc = re.sub(r"\s+", " ", desc).strip()
+            desc = ihtml.unescape(re.sub(r"\s+", " ", desc)).strip()
             items.append({
-                "name": (it.findtext("title") or "").strip(),
-                "url": link,
+                "name": ihtml.unescape((it.findtext("title") or "").strip()),
+                "url": (it.findtext("link") or "").strip(),
                 "img": img,
                 "desc": desc[:170],
             })
-        return jsonify({"source": "Gadget Flow", "items": items})
+        return jsonify({"source": "Hackaday", "items": items})
     except Exception as e:
         return jsonify({"error": str(e)})
 
