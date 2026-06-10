@@ -252,11 +252,18 @@ a:hover > .row .t { color: var(--accent); }
 .tp-img { width: 100%; height: 100%; object-fit: contain; display: block;
   padding: 12px; transition: transform .4s ease; }
 .tp-link:hover .tp-img { transform: scale(1.05); }
-/* emoji-icon variant (curated gadgets) — big glyph on the gradient */
-.tp-emoji { display: flex; align-items: center; justify-content: center; }
-.tp-ico { font-size: 4.6rem; line-height: 1; z-index: 1; transition: transform .3s ease;
-  filter: drop-shadow(0 6px 14px rgba(0,0,0,.45)); }
-.tp-link:hover .tp-ico { transform: scale(1.12) rotate(-4deg); }
+/* emoji-icon variant (curated gadgets) — big glyph in a soft glowing disc */
+.tp-emoji { display: flex; align-items: center; justify-content: center;
+  background:
+    radial-gradient(circle at 50% 44%, rgba(125,211,252,.20), transparent 56%),
+    linear-gradient(135deg, rgba(125,211,252,.12), rgba(56,189,248,.03)); }
+.tp-emoji::before {            /* glowing disc behind the glyph */
+  content: ''; position: absolute; width: 132px; height: 132px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(125,211,252,.30), rgba(125,211,252,0) 70%);
+  filter: blur(3px); }
+.tp-ico { position: relative; z-index: 1; font-size: 5rem; line-height: 1;
+  filter: drop-shadow(0 10px 22px rgba(0,0,0,.55)); transition: transform .35s ease; }
+.tp-link:hover .tp-ico { transform: scale(1.1) rotate(-5deg); }
 /* gradient scrim so the badge stays readable on any photo */
 .tp-shot::after { content: ''; position: absolute; inset: 0;
   background: linear-gradient(to top, rgba(6,10,16,.75), transparent 55%); pointer-events: none; }
@@ -644,16 +651,10 @@ function loadTechPick() {
   const box = $('techpick');
   const g = GADGETS[dayOfYear() % GADGETS.length];
   const url = 'https://www.digitec.ch/en/search?q=' + encodeURIComponent(g.q);
-  // real photo, with the emoji as a graceful fallback if the image ever fails
-  const shot = g.img
-    ? `<img class="tp-img" src="${g.img}" alt="${g.name}" loading="lazy"
-         onerror="var s=this.parentNode; s.classList.add('tp-emoji'); s.querySelector('.tp-ico').style.display=''; this.remove();">
-       <span class="tp-ico" style="display:none">${g.e}</span>`
-    : `<span class="tp-ico">${g.e}</span>`;
   box.innerHTML = `
     <a href="${url}" target="_blank" class="tp-link">
-      <div class="tp-shot${g.img ? '' : ' tp-emoji'}">
-        ${shot}
+      <div class="tp-shot tp-emoji">
+        <span class="tp-ico">${g.e}</span>
         <span class="tp-cat">${g.cat}</span>
       </div>
       <div class="tp-name">${g.name}</div>
