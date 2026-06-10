@@ -9,6 +9,7 @@ those APIs are CORS-friendly and need no key.
 Run with:  PYTHONPATH=./libs python3 app.py   ->  http://localhost:5000
 """
 
+import html as ihtml
 import os
 import random
 import re
@@ -305,6 +306,36 @@ def feeds():
         except Exception as e:
             out.append({"label": label, "source": source, "items": [], "error": str(e)})
     return jsonify({"sections": out})
+
+
+# Anthropic has no RSS, so we scrape their newsroom page directly: each post is a
+# /news/<slug> link wrapping a heading + date. Cached so we hit them rarely.
+def _fetch_anthropic():
+    r = requests.get("https://www.anthropic.com/news", timeout=12,
+                     headers={"User-Agent": "Mozilla/5.0 (personal-dashboard)"})
+    r.raise_for_status()
+    doc = r.text
+    seen, out = set(), []
+    for m in re.finditer(r'href="(/news/[a-z0-9-]+)"[^>]*>(.*?)</a>', doc, re.S):
+        slug, inner = m.group(1), m.group(2)
+        h = re.search(r"<h[1-4][^>]*>(.*?)</h[1-4]>", inner, re.S)
+        if not h:
+            continue
+        title = ihtml.unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", h.group(1)))).strip()
+        dm = re.search(r"([A-Z][a-z]{2,8} \d{1,2}, \d{4})", re.sub(r"<[^>]+>", " ", inner))
+        if title and slug not in seen:
+            seen.add(slug)
+            out.append({"title": title, "url": "https://www.anthropic.com" + slug,
+                        "date": dm.group(1) if dm else ""})
+    return out[:3]
+
+
+@app.route("/api/anthropic")
+def anthropic_news():
+    try:
+        return jsonify({"items": _cached("anthropic", 1800, _fetch_anthropic)})  # 30 min
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 
 # ---------------------------------------------------------------------------

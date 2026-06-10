@@ -556,7 +556,7 @@ async function loadWishlist() {
 
 /* ============================================================
    06 News — three streams in one card:
-     · Anthropic   -> 2x  (HN, ranked by points = most important)
+     · Anthropic   -> 2x  (straight from anthropic.com/news, via backend)
      · Gaming news -> 2x  (IGN, via backend RSS proxy)
      · IT news     -> 3x  (The Register, via backend RSS proxy)
    ============================================================ */
@@ -568,17 +568,13 @@ const newsRow = (title, sub, url) => `
 async function loadNews() {
   const box = $('newsfeed');
   let html = '', ok = false;
-  // TOP — Anthropic / Claude. 'search' ranks by popularity (= most important),
-  // clamped to the last 30 days so it's actual news, not all-time classics.
+  // TOP — Anthropic, straight from their own newsroom (anthropic.com/news)
   try {
-    const cutoff = Math.floor(Date.now() / 1000) - 30 * 86400;
-    const a = await (await fetch(`https://hn.algolia.com/api/v1/search?query=Anthropic%20Claude&tags=story&numericFilters=created_at_i>${cutoff}&hitsPerPage=4`)).json();
-    const hits = (a.hits || []).filter(h => h.title).slice(0, 2);
-    if (hits.length) {
+    const a = await (await fetch('/api/anthropic')).json();
+    const items = (a.items || []).slice(0, 2);
+    if (items.length) {
       html += '<div class="news-sec">Anthropic</div>';
-      html += hits.map(h => newsRow(h.title,
-        `▲ ${h.points||0} · ${relTime(h.created_at_i)}`,
-        h.url || 'https://news.ycombinator.com/item?id=' + h.objectID)).join('');
+      html += items.map(it => newsRow(it.title, it.date || 'anthropic.com', it.url)).join('');
       ok = true;
     }
   } catch (e) {}
